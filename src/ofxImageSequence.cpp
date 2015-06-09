@@ -38,10 +38,42 @@ void ofxImageSequence::drawCentered(int frame) {
     }
 }
 
-void ofxImageSequencePlayer::setup(ofPtr<ofxImageSequence> sequence) {
+void ofxImageSequenceRAM::load(string path, float framerate) {
+
+    ofDirectory dir(path);
+    int n = dir.listDir();
+    
+    images.resize(n);
+    
+    for (int i=0; i<n; i++) {
+        ofFile file = dir[i];
+        ofLoadImage(images[i], file.getAbsolutePath());
+    }
+    
+    this->width = images[0].getWidth();
+    this->height = images[0].getHeight();
+    this->framerate = framerate;
+}
+
+void ofxImageSequenceRAM::draw(int frame) {
+    if (frame >= 0 && frame < images.size()) {
+        texture.loadData(images[frame]);
+        texture.draw(0, 0);
+    }
+}
+
+void ofxImageSequenceRAM::drawCentered(int frame) {
+    if (frame >= 0 && frame < images.size()) {
+        texture.loadData(images[frame]);
+        texture.draw(-texture.getWidth()*0.5f, -texture.getHeight()*0.5f);
+    }
+}
+
+void ofxImageSequencePlayer::setup(ofPtr<ofxImageSequence> & sequence) {
     this->sequence = sequence;
     this->loop = false;
 }
+
 
 void ofxImageSequencePlayer::play() {
     currentFrame = 0;
@@ -70,6 +102,13 @@ void ofxImageSequencePlayer::update() {
 
 void ofxImageSequencePlayer::draw() {
     sequence->draw(currentFrame);
+}
+
+void ofxImageSequencePlayer::draw(float x, float y, float z) {
+    ofPushMatrix();
+    ofTranslate(x, y, z);
+    sequence->draw(currentFrame);
+    ofPopMatrix();
 }
 
 void ofxImageSequencePlayer::drawCentered() {
